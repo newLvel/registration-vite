@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import loginImage from './assets/IUG-university.jpg'; 
 
 const LoginPage = () => {
@@ -7,7 +8,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,7 +33,8 @@ const LoginPage = () => {
           throw new Error(data.error || 'Login failed.');
         }
       } else {
-        navigate('/landing', { state: { ...data } });
+        login(data); // Set user data in context
+        // Navigation will happen automatically via ProtectedRoute logic
       }
 
     } catch (err) {

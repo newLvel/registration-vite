@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import registrationImage from './assets/IUG-university.jpg'; 
+import { Link } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import registrationImage from './assets/IUG-university.jpg';
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const RegistrationPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const faculties = {
     "Science": ["Physics", "Chemistry", "Biology"],
@@ -28,7 +29,6 @@ const RegistrationPage = () => {
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-      // Reset department if faculty changes
       ...(name === 'faculty' && { department: '' }),
     }));
   };
@@ -58,7 +58,7 @@ const RegistrationPage = () => {
         throw new Error(data.error || 'Failed to register.');
       }
 
-      navigate('/landing', { state: { ...data } });
+      login(data); // Automatically log in the user
 
     } catch (err) {
       setError(err.message);

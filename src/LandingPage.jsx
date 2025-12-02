@@ -1,35 +1,13 @@
-import React from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
-import { FiUser, FiMail, FiCalendar, FiBook, FiLogOut } from "react-icons/fi";
+import React from 'react';
+import { useAuth } from './AuthContext';
+import { FiUser, FiMail, FiCalendar, FiBook, FiLogOut } from 'react-icons/fi';
 
 const LandingPage = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const student = location.state || {};
-
-  if (!student.matricule) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white text-center p-10 rounded-2xl shadow-2xl max-w-md w-full">
-          <h2 className="text-3xl font-bold text-red-600 mb-4">
-            Access Denied
-          </h2>
-          <p className="text-gray-600 mb-8">
-            Please log in to view your dashboard.
-          </p>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition-all"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const { user: student, logout } = useAuth();
 
   const handleLogout = () => {
-    navigate("/login");
+    logout();
+    // Navigation will happen automatically via ProtectedRoute logic
   };
 
   return (
@@ -38,10 +16,7 @@ const LandingPage = () => {
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-red-600">IUG Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="flex items-center text-gray-600 hover:text-red-600 font-semibold"
-          >
+          <button onClick={handleLogout} className="flex items-center text-gray-600 hover:text-red-600 font-semibold">
             <FiLogOut className="mr-2" /> Logout
           </button>
         </div>
