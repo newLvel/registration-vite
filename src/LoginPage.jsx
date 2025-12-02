@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import loginImage from './assets/IUG-university.jpg'; 
+import { FiEye, FiEyeOff } from 'react-icons/fi';
+import loginImage from './assets/IUG-university.jpg';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -34,7 +36,6 @@ const LoginPage = () => {
         }
       } else {
         login(data); // Set user data in context
-        // Navigation will happen automatically via ProtectedRoute logic
       }
 
     } catch (err) {
@@ -60,7 +61,12 @@ const LoginPage = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <InputField label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
-            <InputField label="Password" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+            <div className="relative">
+              <InputField label="Password" id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 top-7 pr-3 flex items-center text-gray-600">
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
 
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center">

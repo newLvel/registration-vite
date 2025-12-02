@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import registrationImage from './assets/IUG-university.jpg';
 
 const RegistrationPage = () => {
@@ -14,6 +15,9 @@ const RegistrationPage = () => {
     password: '',
     confirmPassword: '',
   });
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -32,16 +36,22 @@ const RegistrationPage = () => {
       ...(name === 'faculty' && { department: '' }),
     }));
   };
-
-  const handleSubmit = async (e) => {
+  
+  const handleReviewSubmit = (e) => {
     e.preventDefault();
     setError('');
-
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
+    setIsReviewing(true);
+  };
 
+  const handleEdit = () => {
+    setIsReviewing(false);
+  };
+
+  const handleConfirm = async () => {
     setLoading(true);
     try {
       const response = await fetch('http://localhost:3001/api/register', {
@@ -58,10 +68,11 @@ const RegistrationPage = () => {
         throw new Error(data.error || 'Failed to register.');
       }
 
-      login(data); // Automatically log in the user
+      login(data);
 
     } catch (err) {
       setError(err.message);
+      setIsReviewing(false); 
     } finally {
       setLoading(false);
     }
@@ -75,41 +86,73 @@ const RegistrationPage = () => {
           <img src={registrationImage} alt="University illustration" className="object-cover w-full h-full rounded-l-2xl" />
         </div>
 
-        {/* Right side: Form */}
+        {/* Right side: Form or Review */}
         <div className="w-full md:w-1/2 p-8 md:p-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Create Account</h1>
-          <p className="text-gray-600 mb-8">Join our community of students.</p>
-
           {error && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
               <p>{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="First Name" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required />
-              <InputField label="Last Name" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required />
+          {!isReviewing ? (
+            <>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Create Account</h1>
+              <p className="text-gray-600 mb-8">Join our community of students.</p>
+              <form onSubmit={handleReviewSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField label="First Name" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required />
+                  <InputField label="Last Name" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required />
+                </div>
+                <InputField label="Email Address" id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                <InputField label="Date of Birth" id="dateOfBirth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <SelectField label="Faculty" id="faculty" name="faculty" value={formData.faculty} onChange={handleChange} options={Object.keys(faculties)} />
+                  <SelectField label="Department" id="department" name="department" value={formData.department} onChange={handleChange} options={formData.faculty ? faculties[formData.faculty] : []} disabled={!formData.faculty} />
+                </div>
+                
+                <div className="relative">
+                  <InputField label="Password" id="password" name="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} required />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 top-6 pr-3 flex items-center text-gray-600">
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <InputField label="Confirm Password" id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} required />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 top-6 pr-3 flex items-center text-gray-600">
+                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-transform transform hover:scale-105"
+                >
+                  Review Information
+                </button>
+              </form>
+            </>
+          ) : (
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Review Your Details</h1>
+              <p className="text-gray-600 mb-8">Please confirm your information is correct.</p>
+              <div className="space-y-4">
+                <InfoItem label="Full Name" value={`${formData.firstName} ${formData.lastName}`} />
+                <InfoItem label="Email" value={formData.email} />
+                <InfoItem label="Date of Birth" value={formData.dateOfBirth || 'N/A'} />
+                <InfoItem label="Faculty" value={formData.faculty || 'N/A'} />
+                <InfoItem label="Department" value={formData.department || 'N/A'} />
+              </div>
+              <div className="flex gap-4 mt-8">
+                <button onClick={handleEdit} className="w-full bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                  Edit
+                </button>
+                <button onClick={handleConfirm} disabled={loading} className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 disabled:opacity-70">
+                  {loading ? 'Submitting...' : 'Confirm & Register'}
+                </button>
+              </div>
             </div>
-            <InputField label="Email Address" id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-            <InputField label="Date of Birth" id="dateOfBirth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SelectField label="Faculty" id="faculty" name="faculty" value={formData.faculty} onChange={handleChange} options={Object.keys(faculties)} />
-              <SelectField label="Department" id="department" name="department" value={formData.department} onChange={handleChange} options={formData.faculty ? faculties[formData.faculty] : []} disabled={!formData.faculty} />
-            </div>
-
-            <InputField label="Password" id="password" name="password" type="password" value={formData.password} onChange={handleChange} required />
-            <InputField label="Confirm Password" id="confirmPassword" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-transform transform hover:scale-105 disabled:opacity-70"
-            >
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </button>
-          </form>
+          )}
 
           <div className="mt-8 text-center text-sm">
             <p className="text-gray-600">
@@ -122,7 +165,7 @@ const RegistrationPage = () => {
   );
 };
 
-// Reusable components for form fields
+// Reusable components
 const InputField = ({ label, id, name, type = 'text', value, onChange, required }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -137,6 +180,13 @@ const SelectField = ({ label, id, name, value, onChange, options, disabled }) =>
       <option value="">Select {label}</option>
       {options.map(option => <option key={option} value={option}>{option}</option>)}
     </select>
+  </div>
+);
+
+const InfoItem = ({ label, value }) => (
+  <div className="bg-gray-50 p-3 rounded-lg">
+    <p className="text-sm font-semibold text-gray-600">{label}</p>
+    <p className="text-lg text-gray-900">{value}</p>
   </div>
 );
 
